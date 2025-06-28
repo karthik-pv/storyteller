@@ -228,18 +228,11 @@ def cleanup_session(session_id):
         print(f"Cleanup error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-    # This is required by Vercel's serverless handler
-
-
-def handler(environ, start_response):
-    return app.wsgi_app(environ, start_response)
-
 
 if __name__ == "__main__":
     # Ensure directories exist
     os.makedirs("static", exist_ok=True)
     os.makedirs("static/avatars", exist_ok=True)
 
-    # Use PORT environment variable for Render deployment, fallback to 10000 for local development
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port, debug=False)
