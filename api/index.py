@@ -233,10 +233,3 @@ def cleanup_session(session_id):
 
 def handler(environ, start_response):
     return app.wsgi_app(environ, start_response)
-
-
-if __name__ == "__main__":
-    # Ensure directories exist
-    os.makedirs("static", exist_ok=True)
-    os.makedirs("static/avatars", exist_ok=True)
-    app.run()
