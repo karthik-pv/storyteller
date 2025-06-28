@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Story Image Generator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #000000;
+        min-height: 100vh;
+        color: #ffffff;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .section {
+        margin-bottom: 40px;
+      }
+
+      .section h3 {
+        font-size: 1.3rem;
+        font-weight: 400;
+        margin-bottom: 20px;
+        color: #e1e1e1;
+      }
+
+      .file-upload {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .file-upload input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+
+      .file-upload-label {
+        display: block;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .file-upload-label:hover {
+        border-color: rgba(102, 126, 234, 0.5);
+        background: rgba(102, 126, 234, 0.1);
+      }
+
+      .avatar-preview {
+        margin-top: 20px;
+        text-align: center;
+        display: none;
+      }
+
+      .avatar-preview img {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 15px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      .avatar-preview p {
+        margin-top: 15px;
+        color: #b1b1b1;
+        font-size: 14px;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        margin-bottom: 15px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: rgba(102, 126, 234, 0.5);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+      }
+
+      textarea::placeholder {
+        color: #888;
+      }
+
+      .generate-btn {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      .generate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+      }
+
+      .generate-btn:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 30px;
+        display: none;
+      }
+
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .progress-container {
+        margin: 20px 0;
+        display: none;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .progress-text {
+        text-align: center;
+        margin-top: 10px;
+        color: #b1b1b1;
+        font-size: 14px;
+      }
+
+      .results {
+        display: none;
+      }
+
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin: 30px 0;
+      }
+
+      .image-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .image-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .image-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .image-item .prompt {
+        padding: 20px;
+        font-size: 13px;
+        color: #b1b1b1;
+        line-height: 1.5;
+      }
+
+      .download-section {
+        text-align: center;
+        margin: 40px 0;
+      }
+
+      .download-btn {
+        display: inline-block;
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(17, 153, 142, 0.3);
+      }
+
+      .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(17, 153, 142, 0.4);
+      }
+
+      .error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        backdrop-filter: blur(10px);
+        display: none;
+      }
+
+      .generating-item {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        position: relative;
+      }
+
+      .generating-item::before {
+        content: "";
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="glass-card">
+        <h1>✨ AI Story Image Generator</h1>
+
+        <form id="generateForm" enctype="multipart/form-data">
+          <div class="section">
+            <h3>📸 Upload Avatar Image</h3>
+            <div class="file-upload">
+              <input
+                type="file"
+                id="avatar"
+                name="avatar"
+                accept="image/*"
+                required
+              />
+              <label for="avatar" class="file-upload-label">
+                <div>📁 Choose your avatar image</div>
+                <small>Drag & drop or click to browse</small>
+              </label>
+            </div>
+            <div id="avatarPreview" class="avatar-preview">
+              <img id="previewImage" src="" alt="Avatar preview" />
+              <p>✅ Avatar uploaded successfully!</p>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>✍️ Enter Your Story Prompts (up to 5)</h3>
+            <textarea
+              name="prompt_1"
+              rows="3"
+              placeholder="🌟 Enter your first magical story prompt..."
+              required
+            ></textarea>
+            <textarea
+              name="prompt_2"
+              rows="3"
+              placeholder="🎭 Enter your second creative prompt..."
+            ></textarea>
+            <textarea
+              name="prompt_3"
+              rows="3"
+              placeholder="🏰 Enter your third adventure prompt..."
+            ></textarea>
+            <textarea
+              name="prompt_4"
+              rows="3"
+              placeholder="🦄 Enter your fourth fantasy prompt..."
+            ></textarea>
+            <textarea
+              name="prompt_5"
+              rows="3"
+              placeholder="🌙 Enter your fifth dreamy prompt..."
+            ></textarea>
+          </div>
+
+          <button type="submit" id="generateBtn" class="generate-btn">
+            🎨 Generate Story Images
+          </button>
+        </form>
+
+        <div id="loading" class="loading">
+          <div class="loading-spinner"></div>
+          <p>🎯 Generating your magical story images...</p>
+        </div>
+
+        <div id="progressContainer" class="progress-container">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <div id="progressText" class="progress-text">
+            Preparing to generate images...
+          </div>
+        </div>
+
+        <div id="error" class="error"></div>
+      </div>
+
+      <div id="results" class="results">
+        <div class="glass-card">
+          <h3>🎨 Your Generated Story Images</h3>
+          <div id="imageGrid" class="image-grid"></div>
+          <div class="download-section">
+            <a id="downloadBtn" href="#" class="download-btn">
+              📦 Download All Images (ZIP)
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentSession = null;
+      let totalPrompts = 0;
+      let completedImages = 0;
+
+      // Handle cleanup when browser is closed or page is unloaded
+      window.addEventListener("beforeunload", function (e) {
+        if (currentSession) {
+          // Use sendBeacon for reliable cleanup on page unload
+          navigator.sendBeacon(
+            `/cleanup/${currentSession}`,
+            JSON.stringify({})
+          );
+        }
+      });
+
+      // Also handle page visibility changes (when tab is closed)
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden" && currentSession) {
+          // Use sendBeacon for reliable cleanup
+          navigator.sendBeacon(
+            `/cleanup/${currentSession}`,
+            JSON.stringify({})
+          );
+        }
+      });
+
+      // Handle avatar file preview
+      document
+        .getElementById("avatar")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          const preview = document.getElementById("avatarPreview");
+          const previewImage = document.getElementById("previewImage");
+          const label = document.querySelector(".file-upload-label");
+
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              previewImage.src = e.target.result;
+              preview.style.display = "block";
+              label.innerHTML = `<div>✅ ${file.name}</div><small>Click to change</small>`;
+            };
+            reader.readAsDataURL(file);
+          } else {
+            preview.style.display = "none";
+            label.innerHTML =
+              "<div>📁 Choose your avatar image</div><small>Drag & drop or click to browse</small>";
+          }
+        });
+
+      document
+        .getElementById("generateForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const generateBtn = document.getElementById("generateBtn");
+          const loading = document.getElementById("loading");
+          const error = document.getElementById("error");
+          const results = document.getElementById("results");
+          const progressContainer =
+            document.getElementById("progressContainer");
+
+          // Reset previous results
+          error.style.display = "none";
+          results.style.display = "none";
+          document.getElementById("imageGrid").innerHTML = "";
+          completedImages = 0;
+
+          // Show loading state
+          generateBtn.disabled = true;
+          generateBtn.textContent = "🎯 Initializing...";
+          loading.style.display = "block";
+          progressContainer.style.display = "block";
+
+          try {
+            // First, initialize the session
+            const response = await fetch("/generate-stream", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+              showError(data.error);
+              return;
+            }
+
+            currentSession = data.session_id;
+            totalPrompts = data.total_prompts;
+
+            // Hide loading, show progress
+            loading.style.display = "none";
+            results.style.display = "block";
+
+            // Create placeholder items for images
+            const imageGrid = document.getElementById("imageGrid");
+            const prompts = [];
+            for (let i = 1; i <= 5; i++) {
+              const prompt = formData.get(`prompt_${i}`);
+              if (prompt && prompt.trim()) {
+                prompts.push(prompt.trim());
+              }
+            }
+
+            // Create generating placeholders
+            prompts.forEach((prompt, index) => {
+              const imageItem = document.createElement("div");
+              imageItem.className = "image-item generating-item";
+              imageItem.id = `image-${index + 1}`;
+              imageItem.innerHTML = `
+              <div style="text-align: center; color: #667eea;">
+                <p style="margin-top: 10px;">Generating image ${
+                  index + 1
+                }...</p>
+              </div>
+            `;
+              imageGrid.appendChild(imageItem);
+            });
+
+            // Generate images one by one
+            for (let i = 0; i < prompts.length; i++) {
+              await generateSingleImage(currentSession, i + 1, prompts[i]);
+            }
+
+            // Show download button
+            document.getElementById(
+              "downloadBtn"
+            ).href = `/download/${currentSession}`;
+          } catch (err) {
+            showError("Network error: " + err.message);
+          } finally {
+            // Reset loading state
+            generateBtn.disabled = false;
+            generateBtn.textContent = "🎨 Generate Story Images";
+            loading.style.display = "none";
+            progressContainer.style.display = "none";
+          }
+        });
+
+      async function generateSingleImage(sessionId, index, prompt) {
+        updateProgress(
+          index - 1,
+          totalPrompts,
+          `Generating image ${index} of ${totalPrompts}...`
+        );
+
+        try {
+          const response = await fetch(
+            `/generate-single/${sessionId}/${index}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ prompt: prompt }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Replace the generating placeholder with the actual image
+            const imageItem = document.getElementById(`image-${index}`);
+            imageItem.className = "image-item";
+            imageItem.innerHTML = `
+              <img src="/static/${data.path}" alt="Generated story image" loading="lazy">
+              <div class="prompt">${data.prompt}</div>
+            `;
+
+            completedImages++;
+            updateProgress(
+              completedImages,
+              totalPrompts,
+              `Generated ${completedImages} of ${totalPrompts} images`
+            );
+          } else {
+            showError(`Error generating image ${index}: ${data.error}`);
+          }
+        } catch (err) {
+          showError(`Error generating image ${index}: ${err.message}`);
+        }
+      }
+
+      function updateProgress(completed, total, text) {
+        const progressFill = document.getElementById("progressFill");
+        const progressText = document.getElementById("progressText");
+
+        const percentage = (completed / total) * 100;
+        progressFill.style.width = percentage + "%";
+        progressText.textContent = text;
+      }
+
+      function showError(message) {
+        const error = document.getElementById("error");
+        error.textContent = message;
+        error.style.display = "block";
+      }
+
+      // Handle download button click - clean up session after download
+      document.addEventListener("click", function (e) {
+        if (e.target.id === "downloadBtn" && currentSession) {
+          // Set a timeout to clean up after download (give time for download to complete)
+          setTimeout(function () {
+            if (currentSession) {
+              fetch(`/cleanup/${currentSession}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({}),
+              })
+                .then(() => {
+                  console.log("Session cleaned up after download");
+                  currentSession = null; // Reset session
+                })
+                .catch((err) => {
+                  console.error("Error cleaning up session:", err);
+                });
+            }
+          }, 5000); // Wait 5 seconds after download click
+        }
+      });
+    </script>
+  </body>
+</html>
