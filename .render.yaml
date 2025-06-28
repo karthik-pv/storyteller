@@ -2,6 +2,13 @@ services:
   - type: web
     name: storyteller
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    region: oregon
     plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.4
+      - key: OPENAI_API_KEY
+        sync: false
+    healthCheckPath: /
