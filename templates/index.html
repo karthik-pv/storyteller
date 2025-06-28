@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Story Image Generator</title>
+    <!-- JSZip library for creating ZIP files in frontend -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FileSaver.js for downloading files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -55,6 +59,9 @@
         font-weight: 400;
         margin-bottom: 20px;
         color: #e1e1e1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
 
       .file-upload {
@@ -108,8 +115,16 @@
         font-size: 14px;
       }
 
-      textarea {
-        width: 100%;
+      .prompt-container {
+        margin-bottom: 15px;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .prompt-container textarea {
+        flex: 1;
         padding: 15px 20px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -118,20 +133,92 @@
         font-family: inherit;
         font-size: 14px;
         resize: vertical;
-        margin-bottom: 15px;
         backdrop-filter: blur(10px);
         transition: all 0.3s ease;
+        min-height: 80px;
       }
 
-      textarea:focus {
+      .prompt-container textarea:focus {
         outline: none;
         border-color: rgba(102, 126, 234, 0.5);
         background: rgba(255, 255, 255, 0.08);
         box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
       }
 
-      textarea::placeholder {
+      .prompt-container textarea::placeholder {
         color: #888;
+      }
+
+      .prompt-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 15px;
+        flex-shrink: 0;
+      }
+
+      .remove-prompt-btn {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        flex-shrink: 0;
+      }
+
+      .remove-prompt-btn:hover {
+        background: rgba(239, 68, 68, 0.3);
+        border-color: rgba(239, 68, 68, 0.5);
+      }
+
+      .add-prompt-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: rgba(17, 153, 142, 0.2);
+        border: 1px solid rgba(17, 153, 142, 0.3);
+        color: #6ee7b7;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+
+      .add-prompt-btn:hover {
+        background: rgba(17, 153, 142, 0.3);
+        border-color: rgba(17, 153, 142, 0.5);
+      }
+
+      .prompts-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .prompt-count {
+        background: rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        color: #a5b4fc;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
       }
 
       .generate-btn {
@@ -275,11 +362,20 @@
         font-weight: 500;
         transition: all 0.3s ease;
         box-shadow: 0 8px 25px rgba(17, 153, 142, 0.3);
+        cursor: pointer;
+        border: none;
       }
 
       .download-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 35px rgba(17, 153, 142, 0.4);
+      }
+
+      .download-btn:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
       }
 
       .error {
@@ -342,33 +438,34 @@
           </div>
 
           <div class="section">
-            <h3>✍️ Enter Your Story Prompts (up to 5)</h3>
-            <textarea
-              name="prompt_1"
-              rows="3"
-              placeholder="🌟 Enter your first magical story prompt..."
-              required
-            ></textarea>
-            <textarea
-              name="prompt_2"
-              rows="3"
-              placeholder="🎭 Enter your second creative prompt..."
-            ></textarea>
-            <textarea
-              name="prompt_3"
-              rows="3"
-              placeholder="🏰 Enter your third adventure prompt..."
-            ></textarea>
-            <textarea
-              name="prompt_4"
-              rows="3"
-              placeholder="🦄 Enter your fourth fantasy prompt..."
-            ></textarea>
-            <textarea
-              name="prompt_5"
-              rows="3"
-              placeholder="🌙 Enter your fifth dreamy prompt..."
-            ></textarea>
+            <div class="prompts-header">
+              <h3>✍️ Enter Your Story Prompts</h3>
+              <span id="promptCount" class="prompt-count">1 prompt</span>
+            </div>
+
+            <div id="promptsContainer">
+              <div class="prompt-container" data-prompt-index="1">
+                <div class="prompt-number">1</div>
+                <textarea
+                  name="prompt_1"
+                  rows="3"
+                  placeholder="🌟 Enter your first magical story prompt..."
+                  required
+                ></textarea>
+                <button
+                  type="button"
+                  class="remove-prompt-btn"
+                  onclick="removePrompt(this)"
+                  title="Remove prompt"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <button type="button" class="add-prompt-btn" onclick="addPrompt()">
+              ➕ Add Another Prompt
+            </button>
           </div>
 
           <button type="submit" id="generateBtn" class="generate-btn">
@@ -398,9 +495,9 @@
           <h3>🎨 Your Generated Story Images</h3>
           <div id="imageGrid" class="image-grid"></div>
           <div class="download-section">
-            <a id="downloadBtn" href="#" class="download-btn">
+            <button id="downloadBtn" class="download-btn">
               📦 Download All Images (ZIP)
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -410,6 +507,90 @@
       let currentSession = null;
       let totalPrompts = 0;
       let completedImages = 0;
+      let generatedImages = []; // Store images in frontend
+      let avatarBase64 = null;
+      let promptCounter = 1;
+
+      // Prompt management functions
+      function addPrompt() {
+        promptCounter++;
+        const container = document.getElementById("promptsContainer");
+
+        const promptDiv = document.createElement("div");
+        promptDiv.className = "prompt-container";
+        promptDiv.setAttribute("data-prompt-index", promptCounter);
+
+        const placeholders = [
+          "🌟 Enter your magical story prompt...",
+          "🎭 Enter your creative prompt...",
+          "🏰 Enter your adventure prompt...",
+          "🦄 Enter your fantasy prompt...",
+          "🌙 Enter your dreamy prompt...",
+          "⚡ Enter your action-packed prompt...",
+          "🎨 Enter your artistic prompt...",
+          "🌊 Enter your mystical prompt...",
+          "🔮 Enter your enchanting prompt...",
+          "🌸 Enter your beautiful prompt...",
+        ];
+
+        const placeholder =
+          placeholders[(promptCounter - 1) % placeholders.length];
+
+        promptDiv.innerHTML = `
+          <div class="prompt-number">${promptCounter}</div>
+          <textarea
+            name="prompt_${promptCounter}"
+            rows="3"
+            placeholder="${placeholder}"
+          ></textarea>
+          <button type="button" class="remove-prompt-btn" onclick="removePrompt(this)" title="Remove prompt">×</button>
+        `;
+
+        container.appendChild(promptDiv);
+        updatePromptCount();
+
+        // Focus on the new textarea
+        promptDiv.querySelector("textarea").focus();
+      }
+
+      function removePrompt(button) {
+        const promptContainer = button.closest(".prompt-container");
+        const promptsContainer = document.getElementById("promptsContainer");
+
+        // Don't allow removing the last prompt
+        if (promptsContainer.children.length <= 1) {
+          return;
+        }
+
+        promptContainer.remove();
+        renumberPrompts();
+        updatePromptCount();
+      }
+
+      function renumberPrompts() {
+        const prompts = document.querySelectorAll(".prompt-container");
+        prompts.forEach((prompt, index) => {
+          const number = index + 1;
+          prompt.setAttribute("data-prompt-index", number);
+          prompt.querySelector(".prompt-number").textContent = number;
+          prompt.querySelector("textarea").name = `prompt_${number}`;
+
+          // Update required attribute - first prompt is always required
+          if (number === 1) {
+            prompt.querySelector("textarea").required = true;
+          } else {
+            prompt.querySelector("textarea").required = false;
+          }
+        });
+
+        promptCounter = prompts.length;
+      }
+
+      function updatePromptCount() {
+        const count = document.querySelectorAll(".prompt-container").length;
+        const countElement = document.getElementById("promptCount");
+        countElement.textContent = `${count} prompt${count !== 1 ? "s" : ""}`;
+      }
 
       // Handle avatar file preview
       document
@@ -453,6 +634,7 @@
           results.style.display = "none";
           document.getElementById("imageGrid").innerHTML = "";
           completedImages = 0;
+          generatedImages = [];
 
           // Show loading state
           generateBtn.disabled = true;
@@ -476,6 +658,7 @@
 
             currentSession = data.session_id;
             totalPrompts = data.total_prompts;
+            const prompts = data.prompts;
 
             // Hide loading, show progress
             loading.style.display = "none";
@@ -483,13 +666,6 @@
 
             // Create placeholder items for images
             const imageGrid = document.getElementById("imageGrid");
-            const prompts = [];
-            for (let i = 1; i <= 5; i++) {
-              const prompt = formData.get(`prompt_${i}`);
-              if (prompt && prompt.trim()) {
-                prompts.push(prompt.trim());
-              }
-            }
 
             // Create generating placeholders
             prompts.forEach((prompt, index) => {
@@ -511,10 +687,11 @@
               await generateSingleImage(currentSession, i + 1, prompts[i]);
             }
 
-            // Show download button
-            document.getElementById(
-              "downloadBtn"
-            ).href = `/download/${currentSession}`;
+            // Get avatar for ZIP
+            await getAvatarForZip(currentSession);
+
+            // Enable download button
+            document.getElementById("downloadBtn").disabled = false;
           } catch (err) {
             showError("Network error: " + err.message);
           } finally {
@@ -548,11 +725,22 @@
           const data = await response.json();
 
           if (data.success) {
+            // Store image data in frontend
+            generatedImages.push({
+              filename: data.filename,
+              base64: data.image_base64,
+              prompt: data.prompt,
+              index: data.index,
+            });
+
+            // Convert base64 to data URL for display
+            const imageDataUrl = `data:image/jpeg;base64,${data.image_base64}`;
+
             // Replace the generating placeholder with the actual image
             const imageItem = document.getElementById(`image-${index}`);
             imageItem.className = "image-item";
             imageItem.innerHTML = `
-              <img src="/static/${data.path}" alt="Generated story image" loading="lazy">
+              <img src="${imageDataUrl}" alt="Generated story image" loading="lazy">
               <div class="prompt">${data.prompt}</div>
             `;
 
@@ -570,6 +758,84 @@
         }
       }
 
+      async function getAvatarForZip(sessionId) {
+        try {
+          const response = await fetch(`/get-avatar/${sessionId}`);
+          const data = await response.json();
+
+          if (data.success) {
+            avatarBase64 = data.avatar_base64;
+          } else {
+            console.error("Failed to get avatar:", data.error);
+          }
+        } catch (err) {
+          console.error("Error getting avatar:", err.message);
+        }
+      }
+
+      // Download ZIP functionality
+      document
+        .getElementById("downloadBtn")
+        .addEventListener("click", async function () {
+          const downloadBtn = this;
+
+          try {
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = "🔄 Creating ZIP...";
+
+            // Create ZIP file using JSZip
+            const zip = new JSZip();
+
+            // Add avatar to ZIP
+            if (avatarBase64) {
+              zip.file("avatar.jpg", avatarBase64, { base64: true });
+            }
+
+            // Add generated images to ZIP
+            generatedImages.forEach((image) => {
+              zip.file(image.filename, image.base64, { base64: true });
+            });
+
+            // Generate ZIP file
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+
+            // Download the ZIP file
+            saveAs(zipBlob, `story_images_${currentSession}.zip`);
+
+            // Send cleanup request to backend
+            await cleanupSession(currentSession);
+
+            downloadBtn.textContent = "✅ Downloaded!";
+            setTimeout(() => {
+              downloadBtn.textContent = "📦 Download All Images (ZIP)";
+              downloadBtn.disabled = false;
+            }, 2000);
+          } catch (err) {
+            console.error("Error creating ZIP:", err);
+            showError("Error creating ZIP file: " + err.message);
+            downloadBtn.textContent = "📦 Download All Images (ZIP)";
+            downloadBtn.disabled = false;
+          }
+        });
+
+      async function cleanupSession(sessionId) {
+        try {
+          const response = await fetch(`/cleanup/${sessionId}`, {
+            method: "POST",
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            console.log("Session cleaned up successfully");
+          } else {
+            console.warn("Cleanup warning:", data.message);
+          }
+        } catch (err) {
+          console.error("Error during cleanup:", err.message);
+        }
+      }
+
       function updateProgress(completed, total, text) {
         const progressFill = document.getElementById("progressFill");
         const progressText = document.getElementById("progressText");
@@ -584,6 +850,9 @@
         error.textContent = message;
         error.style.display = "block";
       }
+
+      // Initialize prompt count
+      updatePromptCount();
     </script>
   </body>
 </html>
