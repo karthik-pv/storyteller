@@ -239,4 +239,4 @@ if __name__ == "__main__":
     # Ensure directories exist
     os.makedirs("static", exist_ok=True)
     os.makedirs("static/avatars", exist_ok=True)
-    app.run()
+    app.run(host="0.0.0.0", port=10000)
