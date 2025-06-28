@@ -2,16 +2,7 @@ import os
 import base64
 import zipfile
 import shutil
-import atexit
-import time
-from flask import (
-    Flask,
-    render_template,
-    request,
-    send_file,
-    jsonify,
-    after_this_request,
-)
+from flask import Flask, render_template, request, send_file, jsonify
 from openai import OpenAI
 from PIL import Image
 from io import BytesIO
@@ -25,9 +16,6 @@ app = Flask(__name__)
 
 # Load your OpenAI API key from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Track active sessions for cleanup
-active_sessions = {}
 
 
 @app.route("/")
@@ -57,9 +45,6 @@ def generate_images():
         session_id = str(uuid.uuid4())
         output_dir = f"static/generated/{session_id}"
         os.makedirs(output_dir, exist_ok=True)
-
-        # Track this session
-        active_sessions[session_id] = {"created": time.time(), "output_dir": output_dir}
 
         # Store avatar locally first (exactly like main.py approach)
         avatar_path = os.path.join(output_dir, "avatar.jpg")
@@ -144,9 +129,6 @@ def generate_images_stream():
         output_dir = f"static/generated/{session_id}"
         os.makedirs(output_dir, exist_ok=True)
 
-        # Track this session
-        active_sessions[session_id] = {"created": time.time(), "output_dir": output_dir}
-
         # Store avatar locally first
         avatar_path = os.path.join(output_dir, "avatar.jpg")
         avatar_file.save(avatar_path)
@@ -219,9 +201,6 @@ def download_zip(session_id):
         zip_path = f"static/generated/{session_id}.zip"
         image_dir = f"static/generated/{session_id}"
 
-        if not os.path.exists(image_dir):
-            return jsonify({"error": "Session not found"}), 404
-
         # Create zip with all files (including avatar)
         with zipfile.ZipFile(zip_path, "w") as zipf:
             for filename in os.listdir(image_dir):
@@ -231,9 +210,13 @@ def download_zip(session_id):
                     file_path = os.path.join(image_dir, filename)
                     zipf.write(file_path, filename)
 
-        # Ensure cleanup happens after the response is sent
-        @after_this_request
-        def cleanup_files(response):
+        # Send the zip file
+        response = send_file(
+            zip_path, as_attachment=True, download_name=f"story_images_{session_id}.zip"
+        )
+
+        # Clean up: Delete the entire session folder and zip file after sending
+        def cleanup():
             try:
                 # Remove the session directory (contains avatar and generated images)
                 if os.path.exists(image_dir):
@@ -244,114 +227,20 @@ def download_zip(session_id):
                 if os.path.exists(zip_path):
                     os.remove(zip_path)
                     print(f"Cleaned up zip file: {zip_path}")
-
-                # Remove from active sessions tracking
-                if session_id in active_sessions:
-                    del active_sessions[session_id]
-                    print(f"Removed session {session_id} from tracking")
-
             except Exception as e:
                 print(f"Cleanup error: {str(e)}")
 
-            return response
+        # Schedule cleanup after response is sent
+        response.call_on_close(cleanup)
 
-        # Send the zip file
-        return send_file(
-            zip_path, as_attachment=True, download_name=f"story_images_{session_id}.zip"
-        )
+        return response
 
     except Exception as e:
-        print(f"Download error: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
-@app.route("/cleanup/<session_id>", methods=["POST"])
-def cleanup_session(session_id):
-    """Manual cleanup endpoint that can be called when browser is closed"""
-    try:
-        cleanup_session_files(session_id)
-        return jsonify({"success": True, "message": f"Session {session_id} cleaned up"})
-    except Exception as e:
-        print(f"Manual cleanup error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-
-def cleanup_session_files(session_id):
-    """Helper function to clean up session files"""
-    try:
-        # Remove session directory
-        image_dir = f"static/generated/{session_id}"
-        if os.path.exists(image_dir):
-            shutil.rmtree(image_dir)
-            print(f"Cleaned up directory: {image_dir}")
-
-        # Remove zip file if it exists
-        zip_path = f"static/generated/{session_id}.zip"
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
-            print(f"Cleaned up zip file: {zip_path}")
-
-        # Remove from active sessions tracking
-        if session_id in active_sessions:
-            del active_sessions[session_id]
-            print(f"Removed session {session_id} from tracking")
-
-    except Exception as e:
-        print(f"Cleanup error for session {session_id}: {str(e)}")
-
-
-def cleanup_old_sessions():
-    """Clean up sessions older than 1 hour"""
-    current_time = time.time()
-    sessions_to_cleanup = []
-
-    for session_id, session_data in active_sessions.items():
-        # If session is older than 1 hour (3600 seconds)
-        if current_time - session_data["created"] > 3600:
-            sessions_to_cleanup.append(session_id)
-
-    for session_id in sessions_to_cleanup:
-        print(f"Cleaning up old session: {session_id}")
-        cleanup_session_files(session_id)
-
-
-@app.route("/cleanup-old", methods=["POST"])
-def cleanup_old_sessions_endpoint():
-    """Endpoint to manually trigger cleanup of old sessions"""
-    try:
-        cleanup_old_sessions()
-        return jsonify({"success": True, "message": "Old sessions cleaned up"})
-    except Exception as e:
-        print(f"Old sessions cleanup error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-
-# Clean up any remaining files when the app shuts down
-@atexit.register
-def cleanup_on_exit():
-    """Clean up all active sessions when the app shuts down"""
-    print("Cleaning up all sessions on app shutdown...")
-    for session_id in list(active_sessions.keys()):
-        cleanup_session_files(session_id)
 
 
 if __name__ == "__main__":
     # Ensure directories exist
     os.makedirs("static", exist_ok=True)
     os.makedirs("static/generated", exist_ok=True)
-
-    # Clean up any leftover files from previous runs
-    generated_dir = "static/generated"
-    if os.path.exists(generated_dir):
-        for item in os.listdir(generated_dir):
-            item_path = os.path.join(generated_dir, item)
-            try:
-                if os.path.isdir(item_path):
-                    shutil.rmtree(item_path)
-                else:
-                    os.remove(item_path)
-                print(f"Cleaned up leftover: {item_path}")
-            except Exception as e:
-                print(f"Error cleaning up {item_path}: {e}")
-
     app.run(debug=True)

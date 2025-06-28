@@ -411,28 +411,6 @@
       let totalPrompts = 0;
       let completedImages = 0;
 
-      // Handle cleanup when browser is closed or page is unloaded
-      window.addEventListener("beforeunload", function (e) {
-        if (currentSession) {
-          // Use sendBeacon for reliable cleanup on page unload
-          navigator.sendBeacon(
-            `/cleanup/${currentSession}`,
-            JSON.stringify({})
-          );
-        }
-      });
-
-      // Also handle page visibility changes (when tab is closed)
-      document.addEventListener("visibilitychange", function () {
-        if (document.visibilityState === "hidden" && currentSession) {
-          // Use sendBeacon for reliable cleanup
-          navigator.sendBeacon(
-            `/cleanup/${currentSession}`,
-            JSON.stringify({})
-          );
-        }
-      });
-
       // Handle avatar file preview
       document
         .getElementById("avatar")
@@ -606,31 +584,6 @@
         error.textContent = message;
         error.style.display = "block";
       }
-
-      // Handle download button click - clean up session after download
-      document.addEventListener("click", function (e) {
-        if (e.target.id === "downloadBtn" && currentSession) {
-          // Set a timeout to clean up after download (give time for download to complete)
-          setTimeout(function () {
-            if (currentSession) {
-              fetch(`/cleanup/${currentSession}`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({}),
-              })
-                .then(() => {
-                  console.log("Session cleaned up after download");
-                  currentSession = null; // Reset session
-                })
-                .catch((err) => {
-                  console.error("Error cleaning up session:", err);
-                });
-            }
-          }, 5000); // Wait 5 seconds after download click
-        }
-      });
     </script>
   </body>
 </html>
