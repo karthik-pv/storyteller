@@ -3,6 +3,7 @@ import base64
 import shutil
 import json
 import uuid
+import random
 from flask import Flask, render_template, request, jsonify
 from openai_service import OpenAIService
 from categories_service import categories_service
@@ -42,12 +43,28 @@ def get_categories():
 def generate_story():
     try:
         data = request.json
-        category = data.get("category")
-        subcategory = data.get("subcategory")
+        selected_categories = data.get("selected_categories", [])
         num_slides = data.get("num_slides", 5)
-        use_random = data.get("use_random", False)
 
-        if use_random:
+        # Filter out empty strings from selected categories
+        selected_categories = [cat for cat in selected_categories if cat.strip()]
+
+        if selected_categories:
+            # Random selection from selected categories
+            selected_category = random.choice(selected_categories)
+
+            # Get all available subcategories for the selected category
+            all_categories = categories_service.get_all_categories()
+            if selected_category not in all_categories:
+                return jsonify({"error": f"Invalid category: {selected_category}"}), 400
+
+            available_subcategories = all_categories[selected_category]
+            selected_subcategory = random.choice(available_subcategories)
+
+            category = selected_category
+            subcategory = selected_subcategory
+        else:
+            # Completely random selection from all categories
             category, subcategory = (
                 categories_service.get_random_category_and_subcategory()
             )

@@ -297,6 +297,70 @@
         color: rgba(255, 255, 255, 0.7);
         font-style: italic;
       }
+
+      .categories-container {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      .category-checkbox {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .category-checkbox:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .category-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 12px;
+        accent-color: #7777c6;
+        cursor: pointer;
+      }
+
+      .category-checkbox label {
+        color: rgba(255, 255, 255, 0.9);
+        cursor: pointer;
+        font-size: 1em;
+        margin: 0;
+        flex: 1;
+        text-transform: capitalize;
+      }
+
+      .category-checkbox input[type="checkbox"]:checked + label {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      .categories-container::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .categories-container::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+      }
+
+      .categories-container::-webkit-scrollbar-thumb {
+        background: rgba(120, 119, 198, 0.5);
+        border-radius: 4px;
+      }
+
+      .categories-container::-webkit-scrollbar-thumb:hover {
+        background: rgba(120, 119, 198, 0.7);
+      }
     </style>
   </head>
   <body>
@@ -321,21 +385,24 @@
 
       <div id="story-creation-section" class="story-creation-section">
         <div class="form-group">
-          <label for="category">Story Category:</label>
-          <select id="category">
-            <option value="">Select a category...</option>
-          </select>
+          <label>Story Categories (Select multiple or none for random):</label>
+          <div id="categories-container" class="categories-container">
+            <div class="loading">Loading categories...</div>
+          </div>
+          <small
+            style="
+              color: rgba(255, 255, 255, 0.7);
+              display: block;
+              margin-top: 8px;
+            "
+          >
+            Select multiple categories or leave all unchecked to select from all
+            categories randomly.
+          </small>
         </div>
 
         <div class="form-group">
-          <label for="subcategory">Story Theme:</label>
-          <select id="subcategory">
-            <option value="">Select a theme...</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="num-slides">Number of Slides (1-15):</label>
+          <label for="num-slides">Number of Slides (1-15) *Required:</label>
           <input
             type="number"
             id="num-slides"
@@ -343,22 +410,22 @@
             max="15"
             value="5"
             placeholder="Enter number of slides (1-15)"
+            required
+            style="border: 2px solid rgba(255, 119, 198, 0.3)"
           />
+          <small
+            style="
+              color: rgba(255, 255, 255, 0.7);
+              display: block;
+              margin-top: 8px;
+            "
+          >
+            This field is required to generate a story.
+          </small>
         </div>
 
-        <button
-          class="btn"
-          onclick="generateCustomStory()"
-          id="generate-story-btn"
-        >
-          📖 Generate Story
-        </button>
-        <button
-          class="btn"
-          onclick="generateRandomStory()"
-          id="random-story-btn"
-        >
-          🎲 Generate Random Story
+        <button class="btn" onclick="generateStory()" id="generate-story-btn">
+          🎲 Generate Story
         </button>
       </div>
 
@@ -375,15 +442,11 @@
         </div>
       </div>
 
-      <!-- Results -->
-      <div id="results" class="results-container">
-        <h3>Generated Story Images</h3>
-        <div id="images-grid" class="image-grid"></div>
-        <div id="download-section" class="download-section">
-          <h4>📦 Download Complete Story</h4>
-          <p>Download all images, story text, and avatar as a ZIP file</p>
-          <button class="btn" onclick="downloadZip()">📦 Download ZIP</button>
-        </div>
+      <!-- Download Section -->
+      <div id="download-section" class="download-section">
+        <h4>📦 Download Complete Story</h4>
+        <p>Download all images, story text, and avatar as a ZIP file</p>
+        <button class="btn" onclick="downloadZip()">📦 Download ZIP</button>
       </div>
     </div>
 
@@ -399,38 +462,35 @@
           const data = await response.json();
 
           if (data.success) {
-            const categorySelect = document.getElementById("category");
-            const subcategorySelect = document.getElementById("subcategory");
+            const categoriesContainer = document.getElementById(
+              "categories-container"
+            );
 
-            // Clear existing options
-            categorySelect.innerHTML =
-              '<option value="">Select a category...</option>';
-            subcategorySelect.innerHTML =
-              '<option value="">Select a theme...</option>';
+            // Clear existing content
+            categoriesContainer.innerHTML = "";
 
-            // Add categories
+            // Add categories as checkboxes
             Object.keys(data.categories).forEach((category) => {
-              const option = document.createElement("option");
-              option.value = category;
-              option.textContent = category.replace(/_/g, " ");
-              categorySelect.appendChild(option);
+              const checkboxDiv = document.createElement("div");
+              checkboxDiv.className = "category-checkbox";
+
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.id = `category-${category}`;
+              checkbox.value = category;
+              checkbox.name = "categories";
+
+              const label = document.createElement("label");
+              label.htmlFor = `category-${category}`;
+              label.textContent = category.replace(/_/g, " ");
+
+              checkboxDiv.appendChild(checkbox);
+              checkboxDiv.appendChild(label);
+              categoriesContainer.appendChild(checkboxDiv);
             });
 
-            // Handle category change
-            categorySelect.addEventListener("change", function () {
-              const selectedCategory = this.value;
-              subcategorySelect.innerHTML =
-                '<option value="">Select a theme...</option>';
-
-              if (selectedCategory && data.categories[selectedCategory]) {
-                data.categories[selectedCategory].forEach((subcategory) => {
-                  const option = document.createElement("option");
-                  option.value = subcategory;
-                  option.textContent = subcategory.replace(/_/g, " ");
-                  subcategorySelect.appendChild(option);
-                });
-              }
-            });
+            // Store categories data for later use
+            window.categoriesData = data.categories;
           }
         } catch (error) {
           console.error("Error loading options:", error);
@@ -454,14 +514,21 @@
         }
       }
 
-      // Generate custom story
-      async function generateCustomStory() {
-        const category = document.getElementById("category").value;
-        const subcategory = document.getElementById("subcategory").value;
+      // Generate story with new logic
+      async function generateStory() {
         const numSlides = document.getElementById("num-slides").value;
 
-        if (!category || !subcategory) {
-          alert("Please select both a category and theme.");
+        // Get selected categories from checkboxes
+        const selectedCategories = Array.from(
+          document.querySelectorAll('input[name="categories"]:checked')
+        ).map((checkbox) => checkbox.value);
+
+        // Validate number of slides is required
+        if (!numSlides || numSlides < 1 || numSlides > 15) {
+          alert(
+            "Please enter a valid number of slides (1-15). This field is required."
+          );
+          document.getElementById("num-slides").focus();
           return;
         }
 
@@ -470,12 +537,30 @@
         generateBtn.textContent = "🔄 Generating...";
         generateBtn.disabled = true;
 
-        // Create the dynamic prompt that will be sent to GPT
-        const dynamicPrompt = `You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
+        try {
+          // Send selected categories (empty array if none selected)
+          const response = await fetch("/api/generate-story", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              selected_categories: selectedCategories,
+              num_slides: parseInt(numSlides),
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            currentStory = data.story;
+
+            // Create the dynamic prompt that was sent to GPT
+            const dynamicPrompt = `You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
 
 STORY REQUIREMENTS:
-- Category: ${category}
-- Subcategory: ${subcategory}
+- Category: ${data.story.category}
+- Subcategory: ${data.story.subcategory}
 - Number of slides/scenes: ${numSlides}
 - Each slide should have 2-3 sentences of story text
 - Story should be educational, fun, and inspiring
@@ -493,8 +578,8 @@ CRITICAL IMAGE REQUIREMENTS:
 IMPORTANT: Your response must be in valid JSON format with the following structure:
 {
     "story_title": "Title of the story",
-    "category": "${category}",
-    "subcategory": "${subcategory}",
+    "category": "${data.story.category}",
+    "subcategory": "${data.story.subcategory}",
     "slides": [
         {
             "slide_number": 1,
@@ -516,125 +601,28 @@ The main character from the uploaded avatar should be the hero/protagonist of th
 
 Create a complete story with exactly ${numSlides} slides.`;
 
-        try {
-          const response = await fetch("/api/generate-story", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              category: category,
-              subcategory: subcategory,
-              num_slides: parseInt(numSlides),
-              use_random: false,
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            currentStory = data.story;
             // Add the dynamic prompt to the story object
             currentStory.dynamic_prompt = dynamicPrompt;
+
+            // Add selection info to the story
+            currentStory.selection_info = {
+              selected_categories: selectedCategories,
+              selection_type:
+                selectedCategories.length > 0
+                  ? "from_selected"
+                  : "completely_random",
+            };
+
             displayStory(data.story);
           } else {
             alert("Error generating story: " + data.error);
           }
         } catch (error) {
-          console.error("Error generating custom story:", error);
+          console.error("Error generating story:", error);
           alert("Error generating story. Please try again.");
         } finally {
           generateBtn.textContent = originalText;
           generateBtn.disabled = false;
-        }
-      }
-
-      // Generate random story
-      async function generateRandomStory() {
-        const numSlides = document.getElementById("num-slides").value;
-
-        const randomBtn = document.getElementById("random-story-btn");
-        const originalText = randomBtn.textContent;
-        randomBtn.textContent = "🔄 Generating...";
-        randomBtn.disabled = true;
-
-        // Create the dynamic prompt for random story
-        const dynamicPrompt = `You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
-
-STORY REQUIREMENTS:
-- Category: [RANDOM CATEGORY]
-- Subcategory: [RANDOM SUBCATEGORY]
-- Number of slides/scenes: ${numSlides}
-- Each slide should have 2-3 sentences of story text
-- Story should be educational, fun, and inspiring
-- Use simple language appropriate for children
-- Include positive messages and life lessons
-- Make it interactive and engaging
-
-CRITICAL IMAGE REQUIREMENTS:
-- The user will upload an avatar image that represents the main character
-- ALL image prompts MUST include the main character from the uploaded avatar
-- The main character should be consistently present and recognizable in every scene
-- Describe the character's actions, expressions, and interactions in each scene
-- Ensure character consistency across all slides
-
-IMPORTANT: Your response must be in valid JSON format with the following structure:
-{
-    "story_title": "Title of the story",
-    "category": "[RANDOM CATEGORY]",
-    "subcategory": "[RANDOM SUBCATEGORY]",
-    "slides": [
-        {
-            "slide_number": 1,
-            "story_text": "The story text for this slide (2-3 sentences)",
-            "image_prompt": "Create a fantasy scene showing the exact same character from the reference image, maintaining their precise appearance, clothing, and features, [specific scene description]. Keep the character's identity completely consistent with the reference."
-        }
-    ]
-}
-
-Make sure EVERY image prompt:
-- Features the main character prominently
-- Describes the character's specific actions and expressions
-- Maintains character consistency throughout the story
-- Includes detailed scene descriptions
-- Specifies cartoon/illustration art style suitable for children
-- Creates engaging, child-friendly visuals
-
-The main character from the uploaded avatar should be the hero/protagonist of the story and appear in every single image.
-
-Create a complete story with exactly ${numSlides} slides.`;
-
-        try {
-          const response = await fetch("/api/generate-story", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              use_random: true,
-              num_slides: parseInt(numSlides),
-            }),
-          });
-
-          const data = await response.json();
-
-          if (data.success) {
-            currentStory = data.story;
-            // Create updated dynamic prompt with actual random values
-            const updatedDynamicPrompt = dynamicPrompt
-              .replace(/\[RANDOM CATEGORY\]/g, data.story.category)
-              .replace(/\[RANDOM SUBCATEGORY\]/g, data.story.subcategory);
-            currentStory.dynamic_prompt = updatedDynamicPrompt;
-            displayStory(data.story);
-          } else {
-            alert("Error generating story: " + data.error);
-          }
-        } catch (error) {
-          console.error("Error generating random story:", error);
-          alert("Error generating story. Please try again.");
-        } finally {
-          randomBtn.textContent = originalText;
-          randomBtn.disabled = false;
         }
       }
 
@@ -652,6 +640,31 @@ Create a complete story with exactly ${numSlides} slides.`;
                 " "
               )} | Theme: ${story.subcategory.replace(/_/g, " ")}
             </p>
+        `;
+
+        // Show selection information
+        if (story.selection_info) {
+          const selectionType = story.selection_info.selection_type;
+          const selectedCategories = story.selection_info.selected_categories;
+
+          if (selectionType === "completely_random") {
+            html += `
+              <p style="color: rgba(120, 219, 255, 0.8); font-size: 0.9em; margin-bottom: 15px;">
+                🎲 Randomly selected from all available categories
+              </p>
+            `;
+          } else {
+            html += `
+              <p style="color: rgba(120, 219, 255, 0.8); font-size: 0.9em; margin-bottom: 15px;">
+                🎯 Randomly selected from your chosen categories: ${selectedCategories
+                  .map((cat) => cat.replace(/_/g, " "))
+                  .join(", ")}
+              </p>
+            `;
+          }
+        }
+
+        html += `
           </div>
         `;
 
