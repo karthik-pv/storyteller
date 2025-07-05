@@ -672,6 +672,12 @@ Create a complete story with exactly ${numSlides} slides.`;
             <div class="story-slide">
               <h4>Slide ${slide.slide_number}</h4>
               <div class="story-text">${slide.story_text}</div>
+              
+              <div style="margin: 15px 0; padding: 15px; background: rgba(255, 119, 198, 0.1); border-radius: 10px; border-left: 4px solid rgba(255, 119, 198, 0.5);">
+                <h5 style="color: rgba(255, 119, 198, 0.9); margin-bottom: 10px; font-size: 1em;">🎨 Image Prompt:</h5>
+                <div style="color: rgba(255, 255, 255, 0.8); font-family: monospace; font-size: 0.9em; line-height: 1.4;">${slide.image_prompt}</div>
+              </div>
+              
               <div class="story-image" id="story-image-${index}">
                 <div class="loading">⏳ Generating image...</div>
               </div>
