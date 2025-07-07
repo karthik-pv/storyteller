@@ -20,6 +20,7 @@ STORY REQUIREMENTS:
 - Subcategory: {subcategory}
 - Number of slides/scenes: {num_slides}
 - Each slide should have 2-3 sentences of story text.
+- Character is a boy named Bob.
 - The story should be educational, fun, and inspiring.
 - Use simple language appropriate for children.
 - Include positive messages and life lessons.
