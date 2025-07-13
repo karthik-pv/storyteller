@@ -18,9 +18,10 @@ class OpenAIService:
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def generate_story(self, category, subcategory, num_slides):
-        category = clean_prompt(category)
-        subcategory = clean_prompt(subcategory)
-        num_slides = clean_prompt(num_slides)
+        # category = clean_prompt(category)
+        # subcategory = clean_prompt(subcategory)
+        # num_slides = clean_prompt(num_slides)
+        print("here")
         """Generate story using OpenAI"""
         prompt = f"""
 You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
@@ -192,7 +193,8 @@ The main character from the uploaded avatar should be the hero/protagonist of th
 
 Create a complete story with exactly {num_slides} slides.
 """
-        prompt = clean_prompt(prompt)
+        # prompt = clean_prompt(prompt)
+        print(prompt)
         response = self.client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
