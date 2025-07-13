@@ -555,54 +555,10 @@
           if (data.success) {
             currentStory = data.story;
 
-            // Create the dynamic prompt that was sent to GPT
-            const dynamicPrompt = `You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
-
-STORY REQUIREMENTS:
-- Category: ${data.story.category}
-- Subcategory: ${data.story.subcategory}
-- Number of slides/scenes: ${numSlides}
-- Each slide should have 2-3 sentences of story text
-- Story should be educational, fun, and inspiring
-- Use simple language appropriate for children
-- Include positive messages and life lessons
-- Make it interactive and engaging
-
-CRITICAL IMAGE REQUIREMENTS:
-- The user will upload an avatar image that represents the main character
-- ALL image prompts MUST include the main character from the uploaded avatar
-- The main character should be consistently present and recognizable in every scene
-- Describe the character's actions, expressions, and interactions in each scene
-- Ensure character consistency across all slides
-
-IMPORTANT: Your response must be in valid JSON format with the following structure:
-{
-    "story_title": "Title of the story",
-    "category": "${data.story.category}",
-    "subcategory": "${data.story.subcategory}",
-    "slides": [
-        {
-            "slide_number": 1,
-            "story_text": "The story text for this slide (2-3 sentences)",
-            "image_prompt": "Create a fantasy scene showing the exact same character from the reference image, maintaining their precise appearance, clothing, and features, [specific scene description]. Keep the character's identity completely consistent with the reference."
-        }
-    ]
-}
-
-Make sure EVERY image prompt:
-- Features the main character prominently
-- Describes the character's specific actions and expressions
-- Maintains character consistency throughout the story
-- Includes detailed scene descriptions
-- Specifies cartoon/illustration art style suitable for children
-- Creates engaging, child-friendly visuals
-
-The main character from the uploaded avatar should be the hero/protagonist of the story and appear in every single image.
-
-Create a complete story with exactly ${numSlides} slides.`;
-
-            // Add the dynamic prompt to the story object
-            currentStory.dynamic_prompt = dynamicPrompt;
+            // Add the base_prompt from the backend response
+            if (data.base_prompt) {
+              currentStory.base_prompt = data.base_prompt;
+            }
 
             // Add selection info to the story
             currentStory.selection_info = {
@@ -665,20 +621,21 @@ Create a complete story with exactly ${numSlides} slides.`;
         }
 
         html += `
+              </div>
+            `;
+
+        // Display the complete base prompt in a collapsible section
+        html += `
+          <div class="story-slide">
+            <h4 style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;" onclick="toggleSection('base-prompt')">
+              🤖 Complete Base Prompt Sent to GPT
+              <span id="base-prompt-toggle" style="font-size: 0.8em; color: rgba(255, 255, 255, 0.6);">▼</span>
+            </h4>
+            <div id="base-prompt-content" class="story-text" style="background: rgba(120, 119, 198, 0.1); padding: 15px; border-radius: 10px; font-family: monospace; font-size: 0.85em; max-height: 400px; overflow-y: auto; white-space: pre-wrap; display: block;">
+              ${story.base_prompt || "Base prompt not available"}
+            </div>
           </div>
         `;
-
-        // Display the dynamic prompt with all variables filled in
-        if (story.dynamic_prompt) {
-          html += `
-            <div class="story-slide">
-              <h4>🤖 Complete Prompt Sent to GPT</h4>
-              <div class="story-text" style="background: rgba(120, 119, 198, 0.1); padding: 15px; border-radius: 10px; font-family: monospace; font-size: 0.85em; max-height: 400px; overflow-y: auto; white-space: pre-wrap;">
-                ${story.dynamic_prompt}
-              </div>
-            </div>
-          `;
-        }
 
         story.slides.forEach((slide, index) => {
           html += `
@@ -777,6 +734,9 @@ Create a complete story with exactly ${numSlides} slides.`;
               if (imageResult.success) {
                 images.push(imageResult);
 
+                // Update the slide's image prompt with the updated one from backend
+                currentStory.slides[i].image_prompt = imageResult.prompt;
+
                 // Update story display with generated image immediately
                 const imageContainer = document.getElementById(
                   `story-image-${i}`
@@ -784,6 +744,14 @@ Create a complete story with exactly ${numSlides} slides.`;
                 imageContainer.innerHTML = `
                   <img src="data:image/jpeg;base64,${imageResult.image_base64}" alt="Story slide ${slide.slide_number}" />
                 `;
+
+                // Update the displayed prompt in the story content
+                const promptContainer = document
+                  .querySelector(`#story-image-${i}`)
+                  .previousElementSibling.querySelector("div");
+                if (promptContainer) {
+                  promptContainer.textContent = imageResult.prompt;
+                }
               } else {
                 console.error("Error generating image:", imageResult.error);
                 const imageContainer = document.getElementById(

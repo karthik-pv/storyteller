@@ -75,57 +75,12 @@ def generate_story():
         )
 
         # Generate the story and get the base prompt
-        story_data = openai_service.generate_story(category, subcategory, num_slides)
-
-        # Create the base prompt that was sent to GPT
-        base_prompt = f"""You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
-
-STORY REQUIREMENTS:
-- Category: {category}
-- Subcategory: {subcategory}
-- Number of slides/scenes: {num_slides}
-- Each slide should have 2-3 sentences of story text.
-- The story should be educational, fun, and inspiring.
-- Use simple language appropriate for children.
-- Include positive messages and life lessons.
-- Make it interactive and engaging.
-
-CRITICAL IMAGE REQUIREMENTS:
-- The user will upload an avatar image that represents the main character.
-- ALL image prompts MUST include the main character from the uploaded avatar in most scenes.
-- The main character should be consistently present and recognizable in every scene unless specified otherwise.
-- Describe the character's actions, expressions, and interactions in each scene.
-- Ensure character consistency across all slides.
-
-### Image Types:
-For the images in this story, consider the following types and use them accordingly based on the scene's emotional and narrative focus:
-
-1. **Close-Up**: Focus tightly on the character's face to highlight emotions and details.
-2. **Medium Shot**: Show the character from the waist up. Ideal for depicting interactions.
-3. **Wide Shot (Long Shot)**: Capture the entire character and their surrounding environment.
-4. **Bird's Eye View**: An overhead perspective that makes characters appear small or vulnerable.
-5. **Worm's Eye View**: A low-angle shot looking up at the subject, making them appear larger.
-6. **Over-the-Shoulder Shot**: Taken from behind a character, focusing on what they are looking at.
-7. **Two-Shot**: Includes two characters within the frame for depicting interactions.
-8. **Dutch Angle (Tilted Angle)**: Creates a sense of unease or tension with diagonal horizon.
-9. **Frame Within a Frame**: Utilize elements within the scene to frame the subject.
-10. **Leading Lines**: Incorporate compositional lines that guide the viewer's eye.
-11. **Rule of Thirds**: Divide composition into 3x3 grid for balanced placement.
-12. **Symmetry and Balance**: Arrange elements evenly for harmonious composition.
-13. **Asymmetry**: Place elements unevenly for visual interest and dynamic tension.
-14. **Foreground, Middleground, and Background**: Layer elements at different depths.
-15. **Negative Space**: Use open space around the subject to highlight it.
-
-[Additional detailed instructions for selecting image types and writing scene descriptions...]
-
-The main character from the uploaded avatar should be the hero/protagonist of the story and appear in every single image.
-
-Create a complete story with exactly {num_slides} slides."""
-
-        print("Story generated successfully")
-        return jsonify(
-            {"success": True, "story": story_data, "base_prompt": base_prompt}
+        prompt, story_data = openai_service.generate_story(
+            category, subcategory, num_slides
         )
+        print(prompt)
+        print("Story generated successfully")
+        return jsonify({"success": True, "story": story_data, "base_prompt": prompt})
     except Exception as e:
         print(f"Error generating story: {str(e)}")
         print(f"Error details: {e}")
@@ -241,14 +196,16 @@ def generate_single_image(session_id, idx):
         if not os.path.exists(avatar_path):
             return jsonify({"error": "Avatar not found"}), 400
 
-        image_base64 = openai_service.generate_image(avatar_path, prompt)
+        image_base64, updated_image_prompt = openai_service.generate_image(
+            avatar_path, prompt
+        )
 
         return jsonify(
             {
                 "success": True,
                 "image_base64": image_base64,
                 "filename": f"story_image_{idx}.jpg",
-                "prompt": prompt,
+                "prompt": updated_image_prompt,
                 "index": idx,
             }
         )
