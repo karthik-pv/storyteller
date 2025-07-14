@@ -24,175 +24,163 @@ class OpenAIService:
         print("here")
         """Generate story using OpenAI"""
         prompt = f"""
-You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
+        You are an expert children's story writer. Create an engaging, age-appropriate story for children aged 5-12 years.
 
-STORY REQUIREMENTS:
-- Category: {category}
-- Subcategory: {subcategory}
-- Number of slides/scenes: {num_slides}
-- Each slide should have 2-3 sentences of story text.
-- The story should be educational, fun, and inspiring.
-- Use simple language appropriate for children.
-- Include positive messages and life lessons.
-- Make it interactive and engaging.
+        STORY REQUIREMENTS:
+        - Category: {category}
+        - Subcategory: {subcategory}
+        - Number of slides/scenes: {num_slides}
+        - Each slide should have 2-3 sentences of story text.
+        - The story should be educational, fun, and inspiring.
+        - Use simple language appropriate for children.
+        - Include positive messages and life lessons.
+        - Make it interactive and engaging.
+        - Feel free to add more supporting characters to the story if needed.
+        - Make sure the story generated is strongly linked to the category and subcategory that has been selected. It should be very relevant to the choice of category and subcategory.
 
-CRITICAL IMAGE REQUIREMENTS:
-- The user will upload an avatar image that represents the main character.
-- ALL image prompts MUST include the main character from the uploaded avatar in most scenes.
-- The main character should be consistently present and recognizable in every scene unless specified otherwise.
-- Describe the character's actions, expressions, and interactions in each scene.
-- Ensure character consistency across all slides.
+        CRITICAL IMAGE REQUIREMENTS:
+        - The user will upload an avatar image that represents the main character.
+        - ALL image prompts MUST include the main character from the uploaded avatar in most scenes.
+        - The main character should be consistently present and recognizable in every scene unless specified otherwise.
+        - Describe the character's actions, expressions, and interactions in each scene.
+        - Ensure character consistency across all slides.
+        - If there are additional characters, include a detailed description with every detail of the character in every image prompt to ensure consistency.
+        - For a given scene, select the top 5 most suitable types of images to represent the scene (close-up, medium shot, wide shot, etc.) and select one at random from the 5 to use.
+        - The images must give a very holistic approach to the story when put together, ensuring each image is equally engaging and maintains the flow across all the images.
 
-### ENHANCED IMAGE PROMPT SPECIFICATIONS:
-Every image prompt MUST include ALL of the following detailed elements:
+        ### ENHANCED IMAGE PROMPT SPECIFICATIONS:
+        Every image prompt MUST include ALL of the following detailed elements:
 
-#### 1. CHARACTER DETAILS:
-- *Physical Positioning*: Specify exact body position (standing, sitting, kneeling, lying down, walking, running, jumping, etc.)
-- *Body Orientation*: Detail which way the character is facing (towards camera, profile view, three-quarter turn, back to camera, etc.)
-- *Facial Expression*: Describe precise emotions (beaming with joy, eyes sparkling with wonder, concentrated focus, proud smile, surprised wide eyes, determined look, etc.)
-- *Hand Gestures*: Specify what the character's hands are doing (pointing, waving, holding objects, hands on hips, clapping, reaching out, etc.)
-- *Body Language*: Detail posture and stance (confident chest out, curious leaning forward, excited bouncing, relaxed shoulders, etc.)
+        #### 1. CHARACTER DETAILS:
+        - *Physical Positioning*: Specify exact body position (standing, sitting, kneeling, lying down, walking, running, jumping, etc.)
+        - *Body Orientation*: Detail which way the character is facing (towards camera, profile view, three-quarter turn, back to camera, etc.)
+        - *Facial Expression*: Describe precise emotions (beaming with joy, eyes sparkling with wonder, concentrated focus, proud smile, surprised wide eyes, determined look, etc.)
+        - *Hand Gestures*: Specify what the character's hands are doing (pointing, waving, holding objects, hands on hips, clapping, reaching out, etc.)
+        - *Body Language*: Detail posture and stance (confident chest out, curious leaning forward, excited bouncing, relaxed shoulders, etc.)
 
-#### 2. THEMATIC ELEMENTS:
-- *Career/Goal-Specific Props*: Include objects directly related to the story theme (stethoscope for doctor, paintbrush for artist, telescope for astronomer, etc.)
-- *Relevant Clothing/Accessories*: Describe theme-appropriate attire (lab coat, hard hat, chef's hat, uniform, etc.)
-- *Professional Tools*: Mention equipment or instruments specific to the career/goal
-- *Achievement Symbols*: Include elements that show progress or success (certificates, medals, completed projects, etc.)
+        #### 2. THEMATIC ELEMENTS:
+        - *Career/Goal-Specific Props*: Include objects directly related to the story theme (stethoscope for doctor, paintbrush for artist, telescope for astronomer, etc.)
+        - *Relevant Clothing/Accessories*: Describe theme-appropriate attire (lab coat, hard hat, chef's hat, uniform, etc.)
+        - *Professional Tools*: Mention equipment or instruments specific to the career/goal
+        - *Achievement Symbols*: Include elements that show progress or success (certificates, medals, completed projects, etc.)
 
-#### 3. ENVIRONMENTAL CONTEXT:
-- *Setting Details*: Provide specific location descriptions (hospital room, art studio, space station, classroom, laboratory, etc.)
-- *Background Elements*: Include career-relevant background objects and scenery
-- *Scale and Perspective*: Specify the character's size relative to surroundings
-- *Atmospheric Details*: Describe lighting, weather, time of day, mood of the environment
+        #### 3. ENVIRONMENTAL CONTEXT:
+        - *Setting Details*: Provide specific location descriptions (hospital room, art studio, space station, classroom, laboratory, etc.)
+        - *Background Elements*: Include career-relevant background objects and scenery
+        - *Scale and Perspective*: Specify the character's size relative to surroundings
+        - *Atmospheric Details*: Describe lighting, weather, time of day, mood of the environment
 
-#### 4. COMPOSITION AND CAMERA WORK:
-- *Camera Angle*: Specify the viewpoint (eye-level, low-angle heroic shot, high-angle, bird's eye view, etc.)
-- *Shot Type*: Detail the framing (close-up, medium shot, wide shot, etc.)
-- *Depth of Field*: Mention foreground, middleground, and background elements
-- *Visual Focus*: Identify what should be the main focal point
+        #### 4. COMPOSITION AND CAMERA WORK:
+        - *Camera Angle*: Specify the viewpoint (eye-level, low-angle heroic shot, high-angle, bird's eye view, etc.)
+        - *Shot Type*: Detail the framing (close-up, medium shot, wide shot, etc.)
+        - *Depth of Field*: Mention foreground, middleground, and background elements
+        - *Visual Focus*: Identify what should be the main focal point
 
-#### 5. INTERACTION AND ACTION:
-- *Active Engagement*: Show the character actively participating in theme-related activities
-- *Object Interaction*: Detail how the character is using or interacting with relevant props
-- *Environmental Interaction*: Describe how the character relates to their surroundings
-- *Dynamic Movement*: Include action verbs that show the character in motion or engaged activity
+        #### 5. INTERACTION AND ACTION:
+        - *Active Engagement*: Show the character actively participating in theme-related activities
+        - *Object Interaction*: Detail how the character is using or interacting with relevant props
+        - *Environmental Interaction*: Describe how the character relates to their surroundings
+        - *Dynamic Movement*: Include action verbs that show the character in motion or engaged activity
 
-#### 6. ADDITIONAL CHARACTERS:
-- *Additional Characters Description*: If there are additional characters (in addition to the main character whose avatar I will upload), include a detailed description with every detail of the character ranging from color, height, structure etc in EVERY image prompt. This is to ensure character consistency across all the generated images.
+        #### 6. ADDITIONAL CHARACTERS:
+        - *Additional Characters Description*: If there are additional characters (in addition to the main character whose avatar I will upload), include a detailed description with every detail of the character ranging from color, height, structure, etc., in EVERY image prompt. This is to ensure character consistency across all the generated images.
 
-### Image Types and Their Applications:
+        ### Image Types and Their Applications:
+        1. *Close-Up*: Focus tightly on the character's face to highlight emotions and details. Use this shot to connect deeply with the character's feelings, such as showing determination, joy, or concentration while working on their goal.
+        2. *Medium Shot*: Show the character from the waist up, ideal for depicting interactions with career-related tools or showing the character actively working on their aspirations.
+        3. *Wide Shot (Long Shot)*: Capture the entire character and their surrounding environment. This shot is useful when establishing the professional setting and context, helping readers understand the career environment.
+        4. *Bird's Eye View*: An overhead perspective that shows the character's workspace or the scope of their achievement. Use this to emphasize the magnitude of their accomplishment or the complexity of their work.
+        5. *Worm's Eye View*: A low-angle shot looking up at the subject, making them appear larger and more heroic. Use this when a character experiences a moment of triumph or faces a significant challenge.
+        6. *Over-the-Shoulder Shot*: Taken from behind a character, this shot focuses on what they are working on or looking at. Use it to immerse the reader in the character's perspective as they pursue their goal.
+        7. *Two-Shot*: Includes two characters within the frame, valuable for depicting mentorship, collaboration, or learning relationships in career contexts.
+        8. *Dutch Angle (Tilted Angle)*: This technique introduces a diagonal horizon line, creating excitement or highlighting challenging moments in the character's journey.
+        9. *Frame Within a Frame*: Utilize elements within the scene, such as windows, doorways, or equipment, to frame the subject and add professional context.
+        10. *Leading Lines*: Incorporate compositional lines that guide the viewer's eye toward the main subject, such as paths leading to the character's workplace or tools pointing toward their goal.
 
-1. *Close-Up*: Focus tightly on the character's face to highlight emotions and details. Use this shot to connect deeply with the character's feelings, such as showing determination, joy, or concentration while working on their goal.
+        ### MANDATORY IMAGE PROMPT STRUCTURE:
+        Every image prompt MUST follow this exact format:
+        "Create a [IMAGE_TYPE] illustration showing the exact same character from the reference image, maintaining their precise appearance, clothing, and features. 
 
-2. *Medium Shot*: Show the character from the waist up. This is ideal for depicting interactions with career-related tools or showing the character actively working on their aspirations.
+        CHARACTER POSITION: [Specific body position and orientation]. 
+        FACIAL EXPRESSION: The character displays [specific emotion/expression with details]. 
+        BODY LANGUAGE: [Specific gestures, posture, and stance]. 
+        HANDS: [Detailed description of hand positions and what they're holding/doing]. 
+        THEME ELEMENTS: [Career/goal-specific props, clothing, tools, and accessories]. 
+        SETTING: [Detailed environment description with career-relevant background]. 
+        INTERACTION: The character is actively [specific action related to theme]. 
+        PERSPECTIVE: Use [specific camera angle and shot type]. 
+        LIGHTING: [Mood and lighting description]. 
+        DEPTH: [Foreground, middleground, background elements]. 
+        ACHIEVEMENT FOCUS: [Elements that show progress, success, or goal pursuit]. 
 
-3. *Wide Shot (Long Shot)*: Capture the entire character and their surrounding environment. This shot is useful when establishing the professional setting and context, helping readers understand the career environment.
+        Art style: Vibrant, child-friendly cartoon illustration with clear details and engaging colors."
 
-4. *Bird's Eye View*: An overhead perspective that shows the character's workspace or the scope of their achievement. Use this to emphasize the magnitude of their accomplishment or the complexity of their work.
+        ### EXAMPLE ENHANCED IMAGE PROMPT:
+        "Create a medium shot illustration showing the exact same character from the reference image, maintaining their precise appearance, clothing, and features.
 
-5. *Worm's Eye View*: A low-angle shot looking up at the subject, making them appear larger and more heroic. Use this when a character is experiencing a moment of triumph or facing a significant challenge.
+        CHARACTER POSITION: Character standing confidently at a laboratory bench, body turned three-quarters toward the camera, one foot slightly forward in an active stance. 
+        FACIAL EXPRESSION: The character displays an excited, focused expression with bright eyes wide with discovery, eyebrows raised in surprise, and a small smile of satisfaction. 
+        BODY LANGUAGE: Leaning slightly forward with shoulders relaxed but engaged, showing curiosity and concentration. 
+        HANDS: Left hand holding a test tube up to eye level for examination, right hand pointing at a colorful chemical reaction bubbling in a beaker. 
+        THEME ELEMENTS: Character wearing a white lab coat over their regular clothes, safety goggles pushed up on their forehead, surrounded by scientific equipment including microscopes, beakers, test tubes with colorful liquids, and a periodic table poster on the wall. 
+        SETTING: Modern, well-lit laboratory with clean white surfaces, shelves lined with scientific instruments, charts and diagrams on the walls, and natural light streaming through windows. 
+        INTERACTION: The character is actively conducting a safe, colorful chemistry experiment, observing the results with scientific curiosity. 
+        PERSPECTIVE: Use a slightly low-angle shot to make the character appear capable and heroic in their scientific pursuit. 
+        LIGHTING: Bright, clean lighting with warm highlights on the character's face and cool blue tones from the laboratory equipment. 
+        DEPTH: Laboratory equipment in the foreground, character in the middleground, and educational posters and windows in the background. 
+        ACHIEVEMENT FOCUS: Include a notebook with neat observations, a small trophy or certificate in the background, and visual signs of successful experiments. 
 
-6. *Over-the-Shoulder Shot*: Taken from behind a character, this shot focuses on what they are working on or looking at. Use it to immerse the reader in the character's perspective as they pursue their goal.
+        Art style: Vibrant, child-friendly cartoon illustration with clear details and engaging colors."
 
-7. *Two-Shot*: Includes two characters within the frame, valuable for depicting mentorship, collaboration, or learning relationships in career contexts.
+        ### STORY DEVELOPMENT GUIDELINES:
+        1. *Opening Scene*: Establish the character's dream or aspiration with clear visual elements showing their interest in the career/goal.
+        2. *Learning/Preparation Phase*: Show the character acquiring knowledge, skills, or tools necessary for their goal.
+        3. *Challenge/Obstacle*: Present a realistic challenge that the character must overcome, showing problem-solving and determination.
+        4. *Growth/Practice*: Demonstrate the character applying what they've learned and making progress toward their goal.
+        5. *Achievement/Success*: Conclude with the character reaching their goal or making significant progress, emphasizing the value of hard work and persistence.
 
-8. *Dutch Angle (Tilted Angle)*: This technique introduces a diagonal horizon line, creating excitement or highlighting challenging moments in the character's journey.
-
-9. *Frame Within a Frame*: Utilize elements within the scene, such as windows, doorways, or equipment, to frame the subject and add professional context.
-
-10. *Leading Lines*: Incorporate compositional lines that guide the viewer's eye toward the main subject, such as paths leading to the character's workplace or tools pointing toward their goal.
-
-### MANDATORY IMAGE PROMPT STRUCTURE:
-Every image prompt MUST follow this exact format:
-
-"Create a [IMAGE_TYPE] illustration showing the exact same character from the reference image, maintaining their precise appearance, clothing, and features. 
-
-CHARACTER POSITION: [Specific body position and orientation]. 
-FACIAL EXPRESSION: The character displays [specific emotion/expression with details]. 
-BODY LANGUAGE: [Specific gestures, posture, and stance]. 
-HANDS: [Detailed description of hand positions and what they're holding/doing]. 
-THEME ELEMENTS: [Career/goal-specific props, clothing, tools, and accessories]. 
-SETTING: [Detailed environment description with career-relevant background]. 
-INTERACTION: The character is actively [specific action related to theme]. 
-PERSPECTIVE: Use [specific camera angle and shot type]. 
-LIGHTING: [Mood and lighting description]. 
-DEPTH: [Foreground, middleground, background elements]. 
-ACHIEVEMENT FOCUS: [Elements that show progress, success, or goal pursuit]. 
-
-Art style: Vibrant, child-friendly cartoon illustration with clear details and engaging colors."
-
-### EXAMPLE ENHANCED IMAGE PROMPT:
-
-"Create a medium shot illustration showing the exact same character from the reference image, maintaining their precise appearance, clothing, and features. 
-
-CHARACTER POSITION: Character standing confidently at a laboratory bench, body turned three-quarters toward the camera, one foot slightly forward in an active stance. 
-FACIAL EXPRESSION: The character displays an excited, focused expression with bright eyes wide with discovery, eyebrows raised in surprise, and a small smile of satisfaction. 
-BODY LANGUAGE: Leaning slightly forward with shoulders relaxed but engaged, showing curiosity and concentration. 
-HANDS: Left hand holding a test tube up to eye level for examination, right hand pointing at a colorful chemical reaction bubbling in a beaker. 
-THEME ELEMENTS: Character wearing a white lab coat over their regular clothes, safety goggles pushed up on their forehead, surrounded by scientific equipment including microscopes, beakers, test tubes with colorful liquids, and a periodic table poster on the wall. 
-SETTING: Modern, well-lit laboratory with clean white surfaces, shelves lined with scientific instruments, charts and diagrams on the walls, and natural light streaming through windows. 
-INTERACTION: The character is actively conducting a safe, colorful chemistry experiment, observing the results with scientific curiosity. 
-PERSPECTIVE: Use a slightly low-angle shot to make the character appear capable and heroic in their scientific pursuit. 
-LIGHTING: Bright, clean lighting with warm highlights on the character's face and cool blue tones from the laboratory equipment. 
-DEPTH: Laboratory equipment in the foreground, character in the middleground, and educational posters and windows in the background. 
-ACHIEVEMENT FOCUS: Include a notebook with neat observations, a small trophy or certificate in the background, and visual signs of successful experiments. 
-
-Art style: Vibrant, child-friendly cartoon illustration with clear details and engaging colors."
-
-### STORY DEVELOPMENT GUIDELINES:
-
-1. *Opening Scene*: Establish the character's dream or aspiration with clear visual elements showing their interest in the career/goal.
-
-2. *Learning/Preparation Phase*: Show the character acquiring knowledge, skills, or tools necessary for their goal.
-
-3. *Challenge/Obstacle*: Present a realistic challenge that the character must overcome, showing problem-solving and determination.
-
-4. *Growth/Practice*: Demonstrate the character applying what they've learned and making progress toward their goal.
-
-5. *Achievement/Success*: Conclude with the character reaching their goal or making significant progress, emphasizing the value of hard work and persistence.
-
-IMPORTANT: Your response must be in valid JSON format with the following structure:
-{{
-    "story_title": "Title of the story",
-    "category": "{category}",
-    "subcategory": "{subcategory}",
-    "slides": [
+        IMPORTANT: Your response must be in valid JSON format with the following structure:
         {{
-            "slide_number": 1,
-            "story_text": "The story text for this slide (2-3 sentences)",
-            "image_prompt": "[Use the MANDATORY IMAGE PROMPT STRUCTURE above with all required elements]"
+            "story_title": "Title of the story",
+            "category": "{category}",
+            "subcategory": "{subcategory}",
+            "slides": [
+                {{
+                    "slide_number": 1,
+                    "story_text": "The story text for this slide (2-3 sentences)",
+                    "image_prompt": "[Use the MANDATORY IMAGE PROMPT STRUCTURE above with all required elements]"
+                }}
+            ]
         }}
-    ]
-}}
 
-### QUALITY CHECKLIST FOR EVERY IMAGE PROMPT:
-Before finalizing each image prompt, ensure it includes:
-✓ Specific character positioning and orientation
-✓ Detailed facial expression and emotions
-✓ Precise hand gestures and body language
-✓ Career/goal-specific props and clothing
-✓ Relevant environmental setting
-✓ Active interaction with theme elements
-✓ Appropriate camera angle and perspective
-✓ Clear lighting and mood description
-✓ Depth and composition details
-✓ Achievement or progress indicators
-✓ Child-friendly cartoon art style specification
-✓ If additional characters are mentioned, include a detailed description with every detail of the character in every image prompt.
+        ### QUALITY CHECKLIST FOR EVERY IMAGE PROMPT:
+        Before finalizing each image prompt, ensure it includes:
+        ✓ Specific character positioning and orientation
+        ✓ Detailed facial expression and emotions
+        ✓ Precise hand gestures and body language
+        ✓ Career/goal-specific props and clothing
+        ✓ Relevant environmental setting
+        ✓ Active interaction with theme elements
+        ✓ Appropriate camera angle and perspective
+        ✓ Clear lighting and mood description
+        ✓ Depth and composition details
+        ✓ Achievement or progress indicators
+        ✓ Child-friendly cartoon art style specification
+        ✓ If additional characters are mentioned, include a detailed description with every detail of the character in every image prompt.
 
-Make sure EVERY image prompt:
-- Features the main character prominently in a thematically appropriate role
-- Shows the character actively engaged with career/goal-related activities
-- Maintains character consistency throughout the story
-- Includes detailed career/goal-related environmental elements
-- Creates engaging, thematically relevant visuals that reinforce the story's message
-- Uses dynamic positioning and expressions that bring the story to life
-- Includes detailed description of additional characters in every image prompt if mentioned.
+        Make sure EVERY image prompt:
+        - Features the main character prominently in a thematically appropriate role
+        - Shows the character actively engaged with career/goal-related activities
+        - Maintains character consistency throughout the story
+        - Includes detailed career/goal-related environmental elements
+        - Creates engaging, thematically relevant visuals that reinforce the story's message
+        - Uses dynamic positioning and expressions that bring the story to life
+        - Includes detailed description of additional characters in every image prompt if mentioned.
 
-The main character from the uploaded avatar should be the hero/protagonist of the story and appear in every single image performing actions directly related to their career aspiration or goal achievement.
+        The main character from the uploaded avatar should be the hero/protagonist of the story and appear in every single image performing actions directly related to their career aspiration or goal achievement.
 
-Create a complete story with exactly {num_slides} slides.
-"""
+        Create a complete story with exactly {num_slides} slides.
+        """
         # prompt = clean_prompt(prompt)
         print(prompt)
         response = self.client.chat.completions.create(
