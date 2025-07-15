@@ -35,7 +35,7 @@ class OpenAIService:
         - Use simple language appropriate for children.
         - Include positive messages and life lessons.
         - Make it interactive and engaging.
-        - Feel free to add more supporting characters to the story if needed.
+        - Add more supporting characters to the story, just make sure they are relevant to the story you create, also ensure consistency in the characters.
         - Make sure the story generated is strongly linked to the category and subcategory that has been selected. It should be very relevant to the choice of category and subcategory.
 
         CRITICAL IMAGE REQUIREMENTS:
@@ -44,10 +44,11 @@ class OpenAIService:
         - The main character should be consistently present and recognizable in every scene unless specified otherwise.
         - Describe the character's actions, expressions, and interactions in each scene.
         - Ensure character consistency across all slides.
-        - If there are additional characters, include a detailed description with every detail of the character in every image prompt to ensure consistency.
+        - For the additional characters, include a detailed description with every detail of the character in every image prompt to ensure consistency.
         - For a given scene, select the top 5 most suitable types of images to represent the scene (close-up, medium shot, wide shot, etc.) and select one at random from the 5 to use.
         - The images must give a very holistic approach to the story when put together, ensuring each image is equally engaging and maintains the flow across all the images.
-
+        - Every image must have the same texture as the uploaded avatar image. This is absolutely critical.
+        
         ### ENHANCED IMAGE PROMPT SPECIFICATIONS:
         Every image prompt MUST include ALL of the following detailed elements:
 
@@ -84,6 +85,7 @@ class OpenAIService:
 
         #### 6. ADDITIONAL CHARACTERS:
         - *Additional Characters Description*: If there are additional characters (in addition to the main character whose avatar I will upload), include a detailed description with every detail of the character ranging from color, height, structure, etc., in EVERY image prompt. This is to ensure character consistency across all the generated images.
+        - *Additional Character Inclusion*:Make sure you add additional characters wherever it helps, it is always better to have additional supporting characters.
 
         ### Image Types and Their Applications:
         1. *Close-Up*: Focus tightly on the character's face to highlight emotions and details. Use this shot to connect deeply with the character's feelings, such as showing determination, joy, or concentration while working on their goal.
